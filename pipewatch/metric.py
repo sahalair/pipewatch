@@ -42,6 +42,17 @@ def load_metrics(run_id: str) -> list[dict]:
         return json.load(fh)
 
 
+def list_runs() -> list[str]:
+    """Return all run IDs that have saved metrics, sorted alphabetically."""
+    if not os.path.isdir(_METRICS_DIR):
+        return []
+    return sorted(
+        fname[:-5]
+        for fname in os.listdir(_METRICS_DIR)
+        if fname.endswith(".json")
+    )
+
+
 def compare_metrics(run_id_a: str, run_id_b: str) -> list[dict]:
     """Compare metrics between two runs. Returns a list of comparison dicts."""
     metrics_a = {m["name"]: m for m in load_metrics(run_id_a)}
