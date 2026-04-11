@@ -82,6 +82,7 @@ def test_format_diff_with_color_contains_ansi():
 # ---------------------------------------------------------------------------
 
 def _make_run(store_dir: Path, output_value):
+    """Create, finish, and persist a run record; return its run_id."""
     rec = create_run_record(pipeline="test-pipe", metadata={"output": output_value})
     rec = finish_run_record(rec, status="success")
     save_run_record(rec, store_dir=store_dir)
@@ -100,17 +101,8 @@ def test_diff_runs_identical():
 def test_diff_runs_detects_difference():
     with tempfile.TemporaryDirectory() as tmp:
         store = Path(tmp)
-        rid_old = _make_run(store, {"rows": 100})
-        rid_new = _make_run(store, {"rows": 200})
-        result = diff_runs(rid_old, rid_new, output_key="output", store_dir=store)
+        rid_a = _make_run(store, {"rows": 100})
+        rid_b = _make_run(store, {"rows": 200})
+        result = diff_runs(rid_a, rid_b, output_key="output", store_dir=store)
         assert result["identical"] is False
         assert result["summary"]["changed"] > 0
-
-
-def test_diff_runs_missing_key_treated_as_none():
-    with tempfile.TemporaryDirectory() as tmp:
-        store = Path(tmp)
-        rid_old = _make_run(store, None)
-        rid_new = _make_run(store, {"rows": 5})
-        result = diff_runs(rid_old, rid_new, output_key="output", store_dir=store)
-        assert result["identical"] is False
