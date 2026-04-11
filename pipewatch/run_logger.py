@@ -53,8 +53,18 @@ def save_run_record(record: dict[str, Any], log_dir: Path = DEFAULT_LOG_DIR) -> 
 
 
 def load_run_record(file_path: Path) -> dict[str, Any]:
-    """Load a run record from a JSON file."""
-    return json.loads(file_path.read_text())
+    """Load a run record from a JSON file.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the file content is not valid JSON.
+    """
+    if not file_path.exists():
+        raise FileNotFoundError(f"Run record not found: {file_path}")
+    try:
+        return json.loads(file_path.read_text())
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON in run record {file_path}: {exc}") from exc
 
 
 def list_run_records(
