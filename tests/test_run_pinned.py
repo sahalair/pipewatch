@@ -56,6 +56,15 @@ def test_unpin_run_not_found_returns_false(tmp_path):
     assert result is False
 
 
+def test_unpin_run_does_not_affect_other_labels(tmp_path):
+    """Removing one pin should leave other pins intact."""
+    pin_run("keep", "run-keep", base_dir=str(tmp_path))
+    pin_run("remove", "run-remove", base_dir=str(tmp_path))
+    unpin_run("remove", base_dir=str(tmp_path))
+    assert resolve_pin("keep", base_dir=str(tmp_path)) == "run-keep"
+    assert resolve_pin("remove", base_dir=str(tmp_path)) is None
+
+
 def test_resolve_pin_returns_run_id(tmp_path):
     pin_run("gold", "run-gold-123", base_dir=str(tmp_path))
     assert resolve_pin("gold", base_dir=str(tmp_path)) == "run-gold-123"
