@@ -96,13 +96,11 @@ def test_compare_environments_missing_key_in_one():
     assert result["identical"] is False
     assert "cwd" in result["changed"]
     assert result["changed"]["cwd"]["a"] is None
+    assert result["changed"]["cwd"]["b"] == "/tmp"
 
 
-def test_compare_environments_result_has_required_keys():
-    save_environment("run-g", {})
-    save_environment("run-h", {})
-    result = compare_environments("run-g", "run-h")
-    assert "run_id_a" in result
-    assert "run_id_b" in result
-    assert "changed" in result
-    assert "identical" in result
+def test_compare_environments_both_missing_returns_identical():
+    """Comparing two runs with no saved environments should be treated as identical."""
+    result = compare_environments("run-missing-1", "run-missing-2")
+    assert result["identical"] is True
+    assert result["changed"] == {}
