@@ -87,3 +87,25 @@ def check_overdue(
         "overdue": overdue,
         "minutes_overdue": minutes_overdue,
     }
+
+
+def check_all_overdue(
+    last_runs: dict[str, str | None],
+    path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Check overdue status for all scheduled pipelines.
+
+    Args:
+        last_runs: Mapping of pipeline name to its last run ISO timestamp (or None).
+        path: Optional path to the schedules file.
+
+    Returns:
+        A list of overdue-check result dicts for every scheduled pipeline.
+        Pipelines present in schedules but absent from ``last_runs`` are treated
+        as never having run (i.e. last_run_iso=None).
+    """
+    schedules = load_schedules(path)
+    return [
+        check_overdue(pipeline, last_runs.get(pipeline), path)
+        for pipeline in schedules
+    ]
