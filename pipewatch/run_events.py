@@ -90,3 +90,18 @@ def format_events(events: list[dict[str, Any]]) -> str:
         tag = f"[{e['level'].upper()}]"
         lines.append(f"{e['timestamp']} {tag} {e['event_type']}: {e['message']}")
     return "\n".join(lines)
+
+
+def summarize_events(run_id: str) -> dict[str, int]:
+    """Return a count of events per level for *run_id*.
+
+    Example return value::
+
+        {"debug": 2, "info": 5, "warning": 1, "error": 0}
+    """
+    events = load_events(run_id)
+    summary: dict[str, int] = {"debug": 0, "info": 0, "warning": 0, "error": 0}
+    for e in events:
+        level = e.get("level", "info")
+        summary[level] = summary.get(level, 0) + 1
+    return summary
