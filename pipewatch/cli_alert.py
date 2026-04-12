@@ -39,7 +39,7 @@ def cmd_list(args: argparse.Namespace) -> None:
         status = "enabled" if rule.get("enabled", True) else "disabled"
         print(
             f"{i}. [{status}] {rule['name']} "
-            f"— snapshot: {rule['snapshot_key']} "
+            f"\u2014 snapshot: {rule['snapshot_key']} "
             f"| threshold: {rule['threshold']}"
         )
 
@@ -52,6 +52,9 @@ def cmd_check(args: argparse.Namespace) -> None:
         return
     fired = False
     for rule in rules:
+        if not rule.get("enabled", True):
+            print(f"[SKIP] Rule '{rule['name']}': disabled.")
+            continue
         key = rule["snapshot_key"]
         try:
             result = diff_snapshots(key, args.snapshots_dir)
@@ -98,9 +101,10 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> None:
+def main() -> None:
+    """Entry point for the pipewatch-alert CLI."""
     parser = build_parser()
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
     if not hasattr(args, "func"):
         parser.print_help()
         sys.exit(1)
