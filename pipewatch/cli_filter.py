@@ -19,6 +19,10 @@ def cmd_filter(args: argparse.Namespace) -> None:
         limit=args.limit,
     )
 
+    if not runs:
+        print("No runs matched the given filters.", file=sys.stderr)
+        return
+
     all_tags = load_tags(base_dir=args.base_dir) if args.show_tags else None
     print(format_run_list(runs, all_tags=all_tags))
 
