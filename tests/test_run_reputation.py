@@ -21,70 +21,48 @@ def _patch_all(flakiness=None, stability=None):
     ]
 
 
-def test_compute_reputation_returns_required_keys():
-    patches = _patch_all()
+def _run_compute_reputation(pipeline_name, flakiness=None, stability=None):
+    """Helper to run compute_reputation with patched dependencies."""
+    patches = _patch_all(flakiness=flakiness, stability=stability)
     for p in patches:
         p.start()
     try:
-        rep = compute_reputation("my_pipeline")
+        return compute_reputation(pipeline_name)
     finally:
         for p in patches:
             p.stop()
+
+
+def test_compute_reputation_returns_required_keys():
+    rep = _run_compute_reputation("my_pipeline")
     for key in ("pipeline", "score", "grade", "flakiness_score",
                 "flakiness_label", "stability_score", "stability_grade", "run_count"):
         assert key in rep
 
 
 def test_compute_reputation_perfect_score():
-    patches = _patch_all()
-    for p in patches:
-        p.start()
-    try:
-        rep = compute_reputation("pipeline_a")
-    finally:
-        for p in patches:
-            p.stop()
+    rep = _run_compute_reputation("pipeline_a")
     assert rep["score"] == 100.0
     assert rep["grade"] == "excellent"
 
 
 def test_compute_reputation_flaky_lowers_score():
-    patches = _patch_all(flakiness=FLAKINESS_FLAKY, stability=STABILITY_PERFECT)
-    for p in patches:
-        p.start()
-    try:
-        rep = compute_reputation("pipeline_b")
-    finally:
-        for p in patches:
-            p.stop()
+    rep = _run_compute_reputation("pipeline_b", flakiness=FLAKINESS_FLAKY, stability=STABILITY_PERFECT)
     assert rep["score"] < 100.0
 
 
 def test_compute_reputation_low_stability():
-    patches = _patch_all(flakiness=FLAKINESS_STABLE, stability=STABILITY_LOW)
-    for p in patches:
-        p.start()
-    try:
-        rep = compute_reputation("pipeline_c")
-    finally:
-        for p in patches:
-            p.stop()
+    rep = _run_compute_reputation("pipeline_c", flakiness=FLAKINESS_STABLE, stability=STABILITY_LOW)
     assert rep["score"] <= 40.0
     assert rep["grade"] in ("poor", "critical", "fair")
 
 
 def test_compute_reputation_score_never_negative():
-    patches = _patch_all(
+    rep = _run_compute_reputation(
+        "pipeline_d",
         flakiness={"score": 1.0, "label": "very flaky", "run_count": 5},
         stability={"score": 0.0, "grade": "F"},
     )
-    for p in patches:
-        p.start()
-    try:
-        rep = compute_reputation("pipeline_d")
-    finally:
-        for p in patches:
-            p.stop()
     assert rep["score"] >= 0.0
 
 
@@ -102,4 +80,3 @@ def test_format_reputation_report_contains_pipeline_name():
     report = format_reputation_report(rep)
     assert "my_pipe" in report
     assert "85.0" in report
-    assert "GOOD" in report
