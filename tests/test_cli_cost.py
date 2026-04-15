@@ -35,6 +35,16 @@ def test_cmd_record_prints_confirmation(capsys):
     assert "0.5" in out
 
 
+def test_cmd_record_with_notes_and_unit(capsys):
+    """Recorded cost with optional fields should appear in confirmation output."""
+    args = make_args(run_id="r7", pipeline="etl", amount=3.14,
+                     unit="gpu-hour", notes="nightly batch")
+    cli_cost.cmd_record(args)
+    out = capsys.readouterr().out
+    assert "r7" in out
+    assert "3.14" in out
+
+
 def test_cmd_get_prints_details(capsys):
     run_cost.record_cost("r2", "etl", 2.5, unit="cpu-hour")
     args = make_args(run_id="r2")
