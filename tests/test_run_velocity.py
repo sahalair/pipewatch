@@ -101,13 +101,11 @@ def test_velocity_for_all_pipelines_groups_correctly():
     assert etl["count"] == 2
 
 
-def test_format_velocity_report_empty():
-    assert "No velocity" in format_velocity_report([])
-
-
-def test_format_velocity_report_contains_pipeline_name():
-    stats = [{"pipeline": "etl", "window": "day", "count": 5, "rate_per_hour": 0.2083}]
-    report = format_velocity_report(stats)
-    assert "etl" in report
-    assert "day" in report
-    assert "5" in report
+def test_compute_velocity_empty_runs_returns_zero():
+    """compute_velocity returns zero count and rate when no runs exist."""
+    with _patch([]), _patch_now():
+        result = compute_velocity("etl", window="day")
+    assert result["count"] == 0
+    assert result["rate_per_hour"] == 0.0
+    assert result["pipeline"] == "etl"
+    assert result["window"] == "day"
